@@ -151,7 +151,7 @@ abstract class FormEntity
      */
     protected function removeNamespace(array $attributes)
     { 
-        $namespace = $this->fieldNamespace . '_';  
+        $namespace = $this->namespace . '_';  
         $cleaned = [];
 
         foreach ($attributes as $key => $value) {
