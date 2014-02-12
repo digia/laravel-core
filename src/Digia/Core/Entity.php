@@ -16,7 +16,7 @@ abstract class Entity extends Eloquent
     protected $validationRules = [];
 
     /**
-     * Messages to use with validation rules/erros
+     * Messages to use with validation rules/errors
      *
      * @param array
      */
