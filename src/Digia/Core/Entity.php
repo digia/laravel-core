@@ -16,6 +16,13 @@ abstract class Entity extends Eloquent
     protected $validationRules = [];
 
     /**
+     * Messages to use with validation rules/erros
+     *
+     * @param array
+     */
+    protected $validationMessages = [];
+
+    /**
      * Validator
      *
      * @var Illuminate\Validation\Validator
@@ -47,7 +54,7 @@ abstract class Entity extends Eloquent
             throw new NoValidationRulesException('No validation rule array defined on ' . get_called_class());
         }
 
-        $this->validator = Validator::make($this->getAttributes(), $this->getPreparedRules());
+        $this->validator = Validator::make($this->getAttributes(), $this->getPreparedRules(), $this->validationMessages);
 
         return $this->validator->passes();
     }
