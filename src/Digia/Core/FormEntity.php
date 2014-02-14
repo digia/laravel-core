@@ -81,7 +81,7 @@ abstract class FormEntity
 
         foreach ($fillable as $field) {
             if (isset($input[$field]) && ! empty($input[$field])) {
-                $attributes[$field] = $input[$field];
+                $attributes[$this->removeNamespace($field)] = $input[$field];
             }
         }
 
