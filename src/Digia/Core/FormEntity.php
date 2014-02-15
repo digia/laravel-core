@@ -89,6 +89,16 @@ abstract class FormEntity
     }
 
     /**
+     * Set the input data
+     *
+     * @param array $data 
+     */
+    public function setInputData(array $data)
+    {
+        $this->inputData = $data; 
+    }
+
+    /**
      * Get the input data
      *
      * @param string $key Get a single value from the input data
