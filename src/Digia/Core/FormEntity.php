@@ -61,9 +61,13 @@ abstract class FormEntity
      *
      * @return boolean
      */
-    public function hasAttributes()
+    public function hasAttributes($without = null)
     {
         $attributes = $this->getAttributes(); 
+
+        if ( ! is_null($without)) {
+            if (isset($attributes[$without])) unset($attributes[$without]); 
+        }
 
         return (count($attributes) > 0);
     }
@@ -188,6 +192,34 @@ abstract class FormEntity
         unset($this->attributes[$key]);
 
         return $data;
+    }
+
+    /**
+     * Get the form uuid from the input data
+     *
+     * @return string
+     */
+    protected function getUuid()
+    {
+        $attributes = $this->getAttributes();
+
+        if ( ! isset($attributes['uuid'])) return null;
+
+        return $attributes['uuid'];
+    }
+
+    /**
+     * Check if the form input data has a uuid field
+     *
+     * @return boolean
+     */
+    protected function hasUuid()
+    {
+        $attributes = $this->getAttributes();
+
+        if ( ! isset($attributes['uuid'])) return false;
+
+        return true;
     }
 
 }
