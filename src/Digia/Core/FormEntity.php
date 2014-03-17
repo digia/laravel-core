@@ -1,5 +1,14 @@
 <?php
 
+
+/**
+ * IDEAS
+ */
+// Eloquent getXXXAttribute
+// __get Magic method
+// incorporate uuid
+// isBeingUpdated?
+
 namespace Digia\Core;
 
 use Validator, App;
@@ -15,6 +24,12 @@ abstract class FormEntity
      * @var array
      */
     protected $inputData = [];
+
+    /**
+     * Attributes 
+     *
+     */
+    protected $attributes = null;
 
     /**
      * Validator
@@ -51,22 +66,43 @@ abstract class FormEntity
      */
     protected $namespace = null;
 
-    public function __construct()
+    /**
+     * Load the input 
+     *
+     * @param array $input;
+     */
+    public function load(array $input = [])
     {
-        $this->inputData = App::make('request')->all();    
+        if (empty($input)) {
+            $this->inputData = App::make('request')->all(); 
+        }
+
+        $this->inputData = $input;
+    }
+
+    /**
+     * Get the input
+     *
+     * @return array
+     */
+    public function getInput()
+    {
+        return $this->inputData; 
     }
 
     /**
      * Check if the form has attributes from the input data
      *
+     * @param array $without
+     *
      * @return boolean
      */
-    public function hasAttributes($without = null)
+    public function hasAttributes(array $without = [])
     {
         $attributes = $this->getAttributes(); 
 
-        if ( ! is_null($without)) {
-            if (isset($attributes[$without])) unset($attributes[$without]); 
+        if ( ! empty($without)) {
+            array_map('unset', $attributes); 
         }
 
         return (count($attributes) > 0);
@@ -79,41 +115,86 @@ abstract class FormEntity
      */
     public function getAttributes()
     {
+        if ($this->hasAttributesCache()) return $this->getAttributesCache();
+
         $fillable = $this->fillable;
         $input = $this->inputData;
         $attributes = [];
 
         foreach ($fillable as $field) {
-            if (isset($input[$field]) && ! empty($input[$field])) {
+            if (isset($input[$field]) && ! $this->isEmpty($input[$field])) {
                 $attributes[$this->removeNamespace($field)] = $input[$field];
             }
         }
 
+        if ( ! $this->hasAttributesCache()) $this->setAttributesCache($attributes);
+
         return $attributes;
     }
 
-    /**
-     * Set the input data
-     *
-     * @param array $data 
-     */
-    public function setInputData(array $data)
+    protected function hasAttributesCache()
     {
-        $this->inputData = $data; 
+        return ! is_null($this->attributes);
+    }
+
+    protected function setAttributesCache($attributes)
+    {
+        $this->attributes = $attributes; 
+    }
+
+    protected function getAttributesCache()
+    {
+        return $this->attributes; 
     }
 
     /**
-     * Get the input data
+     * Reset the attributes cache
      *
-     * @param string $key Get a single value from the input data
-     *
-     * @return array
+     * @return {object}
      */
-    public function getInputData($key = null)
+    public function resetAttributesCache()
     {
-        if (is_null($key)) return $this->inputData;
-        
-        return $this->inputData[$key];
+        $this->attributes = null; 
+
+        return $this;
+    }
+
+    /**
+     * Remove the namespace from the field names
+     *
+     * @param array|string $attributes
+     *
+     * @return array|string
+     */
+    protected function removeNamespace($attributes)
+    { 
+        if (is_null($this->namespace)) return $attributes;
+
+        $namespace = $this->namespace . '_';  
+
+        if ( ! is_array($attributes)) return str_replace($namespace, '', $attributes);
+
+        $cleaned = [];
+        foreach ($attributes as $key => $value) {
+            $key = str_replace($namespace, '', $key);
+            $cleaned[$key] = $value;
+        }
+
+        return $cleaned;
+    }
+
+    protected function isEmpty($value)
+    {
+        if (is_null($value))
+        {
+            return true;
+        }
+        elseif (is_string($value) && trim($value) === '')
+        {
+            return true;
+        } 
+
+        return false;
     }
 
     /**
@@ -157,41 +238,17 @@ abstract class FormEntity
     }
 
     /**
-     * Remove the namespace from the field names
+     * Check if the form input data has a uuid field
      *
-     * @param array|string $attributes
-     *
-     * @return array|string
+     * @return boolean
      */
-    protected function removeNamespace($attributes)
-    { 
-        $namespace = $this->namespace . '_';  
-
-        if ( ! is_array($attributes)) return str_replace($namespace, '', $attributes);
-
-        $cleaned = [];
-        foreach ($attributes as $key => $value) {
-            $key = str_replace($namespace, '', $key);
-            $cleaned[$key] = $value;
-        }
-
-        return $cleaned;
-    }
-
-    /**
-     * Get a value from the attributes and unset it
-     *
-     * @param string $key
-     *
-     * @return string
-     */
-    protected function pluck($key)
+    public function hasId()
     {
-        $data = $this->attributes[$key];
-        
-        unset($this->attributes[$key]);
+        $attributes = $this->getAttributes();
 
-        return $data;
+        if ( ! isset($attributes['id'])) return false;
+
+        return true;
     }
 
     /**
@@ -199,27 +256,13 @@ abstract class FormEntity
      *
      * @return string
      */
-    protected function getUuid()
+    public function getId()
     {
         $attributes = $this->getAttributes();
 
-        if ( ! isset($attributes['uuid'])) return null;
+        if ( ! isset($attributes['id'])) return null;
 
-        return $attributes['uuid'];
-    }
-
-    /**
-     * Check if the form input data has a uuid field
-     *
-     * @return boolean
-     */
-    protected function hasUuid()
-    {
-        $attributes = $this->getAttributes();
-
-        if ( ! isset($attributes['uuid'])) return false;
-
-        return true;
+        return $attributes['id'];
     }
 
 }
