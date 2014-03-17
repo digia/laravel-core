@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Digia\Core\Exception\EntityNotFoundException;
 use Digia\Core\Exception\SaveTypeNotFoundException;
 
-abstract class EloquentRepository {
-
+abstract class EloquentRepository 
+{
     protected $model;
 
     public function __construct(Model $model)
@@ -30,6 +30,16 @@ abstract class EloquentRepository {
         return $this->model->all(); 
     }
 
+    public function getAllWithTrash()
+    {
+        return $this->model->withTrashed()->all(); 
+    }
+
+    public function getAllOnlyTrash()
+    {
+       return $this->model->onlyTrashed()->all(); 
+    }
+
     public function getAllPaginated($count)
     {
         return $this->model->paginated($count); 
@@ -42,11 +52,12 @@ abstract class EloquentRepository {
 
     public function requireById($id)
     {
-        $model = $this->getById($id);
+        return $this->model->findOrFail($id);
+    }
 
-        if ( ! $model) throw new EntityNotFoundException;
-
-        return $model;
+    public function requireByIdWithTrashed($id)
+    {   
+        return $this->model->withTrashed()->findOrFail($id);    
     }
 
     /**
@@ -130,12 +141,11 @@ abstract class EloquentRepository {
      *
      * @return null| instanceOf Illuminate\Database\Eloquent\Model
      */
-    public function checkForDuplicate(array $data, $model = null, array $fillable = [])
+    public function hasDuplicate(array $data)
     {
-        if (is_null($model)) $model = $this->model;
-        if (empty($fillable)) $fillable = $model->getFillable();
+        $model = $this->getNew();
 
-        foreach ($fillable as $column) {
+        foreach ($this->model->getFillable() as $column) {
             if (isset($data[$column])) $model = $model->where($column, $data[$column]);
         }
 
