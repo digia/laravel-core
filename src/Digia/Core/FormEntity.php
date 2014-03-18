@@ -75,9 +75,11 @@ abstract class FormEntity
     {
         if (empty($input)) {
             $this->inputData = App::make('request')->all(); 
+        } else {
+            $this->inputData = $input;
         }
 
-        $this->inputData = $input;
+        return $this;
     }
 
     /**
