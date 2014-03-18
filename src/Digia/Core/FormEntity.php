@@ -210,7 +210,7 @@ abstract class FormEntity
             throw new NoValidationRulesException('No validation rules found on class ' . get_called_class());
         }
 
-        $this->validator = Validator::make($this->getInputData(), $this->validationRules, $this->validationMessages);
+        $this->validator = Validator::make($this->inputData, $this->validationRules, $this->validationMessages);
 
         return $this->validator->passes();
     }
